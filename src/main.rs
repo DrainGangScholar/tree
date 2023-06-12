@@ -1,5 +1,3 @@
-use std::fs::ReadDir;
-use std::io;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -15,46 +13,20 @@ fn main() {
 }
 
 fn tree(path: &Path, level: usize) {
-    //let entries = read_entries(&path).into_iter();   
-    let entries=read_entries(&path);
-    let entries_iter=&entries.into_iter();
-    let entry_count=&entries_iter.count();
-    let mut entry_index=0;
+    let entries = fs::read_dir(path).unwrap();
 
-
-    for(index,entry) in entries.enumerate() {
+    for entry in entries {
+        let entry = entry.unwrap();
         let entry_name = entry.file_name();
-        let display_name=entry_name.to_string_lossy();
+        let display_name = entry_name.to_string_lossy();
 
-        let is_last_entry= entry_index==entry_count-1;
-        let branch_symbol= if is_last_entry { "└──" } else { "├──" };
-        let indent = "│   ".repeat(level);
+        print!("{}├──", " ".repeat(level));
 
-        println!("{}{}{}",indent,branch_symbol,display_name);   
-        entry_index+=1;
-
-        match entry.file_type() {
-            Ok(file_type)=> {
-                if file_type.is_dir(){
-                    let sub_path=path.join(&entry_name);
-                    tree(&sub_path,level+1);
-                } else {
-                    
-                }
-            },
-            Err(err)=>{
-                eprintln!("Permission denied: {}", path.display());
-                Err(err);
-            },
-        }
-    }
-}
-fn read_entries(path:&Path)->Result<ReadDir,io::Error>{
-    match fs::read_dir(path) {
-        Ok(entries) => Ok(entries),
-        Err(err) => {
-            eprintln!("Permission denied: {}", path.display());
-            Err(err)
+        if entry.file_type().unwrap().is_dir() {
+            let deep_path = path.join(&entry_name);
+            tree(&deep_path, level + 1);
+        } else {
+            println!("{}",&display_name);
         }
     }
 }
