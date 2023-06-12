@@ -13,21 +13,32 @@ fn main() {
 }
 
 fn tree(path: &Path, level: usize) {
-    let entries = fs::read_dir(path).unwrap();
+    let mut entries: Vec<_> = fs::read_dir(path).unwrap().collect();
+
+    entries.sort_by_key(|a| a.as_ref().unwrap().file_name());
+
+    let entry_count = entries.len();
+    let mut index = 0;
 
     for entry in entries {
         let entry = entry.unwrap();
         let entry_name = entry.file_name();
         let display_name = entry_name.to_string_lossy();
 
-        print!("{}├──", " ".repeat(level));
+        let is_last = index == entry_count - 1;
+        let symbol = if is_last { "└──" } else { "├──" };
+        let spacing = "|   ".repeat(level);
+
+        print!("{}{}", spacing, symbol);
 
         if entry.file_type().unwrap().is_dir() {
+            println!("\x1B[1;32m{}\x1B[0m", display_name);
             let deep_path = path.join(&entry_name);
             tree(&deep_path, level + 1);
         } else {
-            println!("{}",&display_name);
+            println!("{}", &display_name);
         }
+        index += 1;
     }
 }
 //TODO
@@ -35,7 +46,4 @@ fn tree(path: &Path, level: usize) {
 //za ignorisanje fajlova radim .split('') I hvatam drugi element pa gledam da li postoji u hesh tablici
 //ako postoji onda ignorisem
 //ako ne postoji onda printam :D
-//da bude malo vise "rust idiomatic"
-//lepsi error handling
 //isto formatiranje kao u pravom tree-u
-//treba da se sortira entries
