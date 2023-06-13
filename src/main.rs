@@ -18,9 +18,8 @@ fn tree(path: &Path, level: usize) {
     entries.sort_by_key(|a| a.as_ref().unwrap().file_name());
 
     let entry_count = entries.len();
-    let mut index = 0;
 
-    for entry in entries {
+    for (index, entry) in entries.into_iter().enumerate() {
         let entry = entry.unwrap();
         let entry_name = entry.file_name();
         let display_name = entry_name.to_string_lossy();
@@ -38,7 +37,6 @@ fn tree(path: &Path, level: usize) {
         } else {
             println!("{}", &display_name);
         }
-        index += 1;
     }
 }
 //TODO
