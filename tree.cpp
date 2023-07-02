@@ -7,11 +7,14 @@ using std::cout,std::endl;
 using std::string;
 using std::vector;
 using std::sort;
+
+void tree(string directory);
+
 int  main(int argc, char*argv[]) {
     //current dir
     //tree()
-    string root= argc==1? ".":argv[1];
-
+    // string root= argc==1? ".":argv[1];
+    tree(fs::current_path().string());
     return 0;
 }
 
