@@ -1,6 +1,7 @@
 use std::env;
 use std::fs;
 use std::path::Path;
+
 fn main() {
     let curr_dir = match env::current_dir() {
         Ok(dir) => dir,
@@ -9,10 +10,10 @@ fn main() {
             return;
         }
     };
-    tree(&curr_dir, 0);
+    tree(&curr_dir, "");
 }
 
-fn tree(path: &Path, level: usize) {
+fn tree(path: &Path, prefix: &str) {
     let mut entries: Vec<_> = fs::read_dir(path).unwrap().collect();
 
     entries.sort_by_key(|a| a.as_ref().unwrap().file_name());
@@ -24,18 +25,22 @@ fn tree(path: &Path, level: usize) {
         let entry_name = entry.file_name();
         let display_name = entry_name.to_string_lossy();
 
-        let is_last = index == entry_count - 1;
-        let symbol = if is_last { "└──" } else { "├──" };
-        let spacing = "|   ".repeat(level);
+        let (symbol, spacing);
 
-        print!("{}{}", spacing, symbol);
+        if index == entry_count - 1 {
+            symbol = "└── ";
+            spacing = "    ";
+        } else {
+            symbol = "├── ";
+            spacing = "│   ";
+        }
+
+        println!("{}{}{}", prefix, symbol, &display_name);
 
         if entry.file_type().unwrap().is_dir() {
-            println!("\x1B[1;32m{}\x1B[0m", display_name);
-            let deep_path = path.join(&entry_name);
-            tree(&deep_path, level + 1);
-        } else {
-            println!("{}", &display_name);
+            let go_next = path.join(&entry_name);
+            let new_prefix = format!("{}{}", prefix, spacing);
+            tree(&go_next, &new_prefix);
         }
     }
 }
